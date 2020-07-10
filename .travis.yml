@@ -7,4 +7,5 @@ cache:
 script: 
     - npm install -g serverless
     - cd hello-world
+    - npm install
     - sls deploy
