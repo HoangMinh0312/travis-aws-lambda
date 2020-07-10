@@ -1,0 +1,16 @@
+service: ${self:custom.env.layer.communication.service}
+
+custom: 
+  cfgPath: "./../cfg"
+  env: ${file(${self:custom.cfgPath}/env.yml)}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ap-southeast-1	
+layers:
+  vuima:
+    name: ${self:custom.env.layer.communication.service}
+    path: ./
+    compatibleRuntimes:
+      - nodejs12.x

@@ -1,0 +1,44 @@
+service:
+  name: sls-base
+
+plugins:
+  - serverless-pseudo-parameters
+
+custom:
+  cfgPath: "./../cfg"
+  env: ${file(${self:custom.cfgPath}/env.yml)}
+  AuctionsTable: 
+   name: !Ref AuctionsTable   
+   arn:  !GetAtt   AuctionsTable.Arn
+  authArn: ${self:custom.env.auth.authArn}
+  mailQueue: 
+   name: hoangQueue-${self:provider.stage}
+   arn: !GetAtt MailQueue.Arn
+   url: !Ref MailQueue
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  environment:
+    NODE_PATH: ${self:custom.env.layer.node_path}    
+  iamRoleStatements: 
+    - ${file(iams/SendMailAM.yml):SendMailAM}
+    
+functions:
+  sendMail:
+    handler: hello.sendEmail 
+    events:
+      - sqs:
+          arn: ${self:custom.mailQueue.arn}
+          batchSize: 1 
+
+resources:
+  Resources:
+    MailQueue: ${file(resources/MailQueue.yml):MailQueue}
+  Outputs:
+    MailQueueArn: ${file(resources/MailQueue.yml):Outputs.MailQueueArn}
+    MailQueueUrl: ${file(resources/MailQueue.yml):Outputs.MailQueueUrl}
+  

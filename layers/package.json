@@ -1,0 +1,24 @@
+{
+  "name": "layers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@middy/core": "^1.0.0",
+    "@middy/http-error-handler": "^1.0.0",
+    "@middy/http-event-normalizer": "^1.0.0",
+    "@middy/http-json-body-parser": "^1.0.0",
+    "@middy/validator": "^1.0.0",
+    "aws-sdk": "^2.706.0",
+    "http-errors": "^1.8.0",
+    "moment": "^2.27.0",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "uuid": "^8.2.0",
+    "detergent-database-db-layer": "file:../core"
+  }
+}

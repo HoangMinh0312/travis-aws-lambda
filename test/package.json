@@ -1,0 +1,30 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watchAll"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.1.0"
+  },
+  "dependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "axios": "^0.19.2",
+    "babel-jest": "^26.1.0",
+    "moment": "^2.27.0",
+    "@middy/core": "^1.0.0",
+    "@middy/http-error-handler": "^1.0.0",
+    "@middy/http-event-normalizer": "^1.0.0",
+    "@middy/http-json-body-parser": "^1.0.0",
+    "@middy/validator": "^1.0.0",
+    "aws-sdk": "^2.706.0",
+    "http-errors": "^1.8.0",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "uuid": "^8.2.0"
+  }
+}

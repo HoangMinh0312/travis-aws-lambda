@@ -1,0 +1,18 @@
+NoteTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: NoteTable-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: userId
+        AttributeType: S
+      - AttributeName: noteId
+        AttributeType: S
+    KeySchema:
+      - AttributeName: userId
+        KeyType: HASH
+      - AttributeName: noteId
+        KeyType: RANGE
+    StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES 
+    

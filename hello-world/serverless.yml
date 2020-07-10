@@ -1,0 +1,146 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: hello-world-1
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+plugins:
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ap-southeast-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    NODE_PATH: ${self:custom.env.layer.node_path}    
+    HOANG_TABLE: ${self:custom.AuctionsTable.name}
+    MAIL_QUEUE: ${self:custom.MailQueue.url}
+    AUCTIONS_BUCKET_NAME: ${self:custom.AuctionsBucket.name}
+    TABLE_NOTE:  ${self:custom.NoteTable.name}
+
+  iamRoleStatements:
+    - ${file(iams/AuctionsTable.yml):AuctionsTableIAM}
+    - ${file(iams/MailQueue.yml):MailQueueIAM}
+    - ${file(iams/AuctionsBucketIAM.yml):AuctionsBucketIAM}
+    - ${file(iams/NoteTable.yml):NoteTableIAM}
+
+package:
+  exclude:
+    - node_modules/**
+  include:
+    - node_modules/serverless-pseudo-parameters/**
+  
+custom:
+  cfgPath: "./../cfg"
+  env: ${file(${self:custom.cfgPath}/env.yml)}
+  AuctionsTable: 
+   name: !Ref AuctionsTable   
+   arn:  !GetAtt   AuctionsTable.Arn
+  authArn: ${self:custom.env.auth.authArn}
+  MailQueue: 
+   arn: ${cf:sls-base-${self:provider.stage}.MailQueueArn}
+   url: ${cf:sls-base-${self:provider.stage}.MailQueueUrl}
+  AuctionsBucket:
+    name: auctions-bucket-hoangdaihiep-${self:provider.stage}
+  NoteTable: 
+   name: !Ref NoteTable   
+   arn:  !GetAtt  NoteTable.Arn
+
+functions:
+  hello:
+    handler: handler.createAuction
+    events: # All events associated with this function
+      - http:
+          path: /auction
+          method: post
+          authorizer: ${self:custom.authArn}
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+
+  getAuctions:
+    handler: handler.getAuctions
+    events: # All events associated with this function
+      - http:
+          path: /auctions
+          method: get
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+  getAuction:
+    handler: handler.getAuction
+    events: # All events associated with this function
+      - http:
+          path: /auction/{id}
+          method: get
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+  plaeBid:
+    handler: handler.placeBird
+    events: # All events associated with this function
+      - http:
+          path: /auction/{id}/bid
+          method: put
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+  uploadAuctionPicture:
+    handler: handler.uploadAuctionPicture
+    events:
+      - http:
+          method: POST
+          path: auction/{id}/picture
+          authorizer: ${self:custom.authArn}
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+  
+  create:
+    handler: create.main
+    events:
+      - http:
+          path: notes
+          method: post
+          cors: true
+          # authorizer: aws_iam
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+
+  processStream:
+    handler: handler.processStream    
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 20
+          startingPosition: TRIM_HORIZON
+          arn: !GetAtt  NoteTable.StreamArn
+          # authorizer: aws_iam
+    layers:
+    - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+  # processAuction:
+  #   handler: longrun.processAuctions
+  #   events:
+  #      - schedule : rate(1 minute)
+  #   layers:
+  #   - ${cf:${self:custom.env.layer.communication.service}-${self:provider.stage}.VuimaLambdaLayerQualifiedArn}
+
+resources:
+  Resources:
+      AuctionsTable: ${file(resources/AuctionsTable.yml):AuctionsTable}
+      AuctionsBucket: ${file(resources/AuctionsBucket.yml):AuctionsBucket}
+      AuctionsBucketPolicy: ${file(resources/AuctionsBucket.yml):AuctionsBucketPolicy}
+      NoteTable: ${file(resources/NoteTable.yml):NoteTable}
+
